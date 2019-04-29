@@ -1,0 +1,7 @@
+.*
+!.gitignore
+*.o
+*.pid
+/nsnw
+/nsexec
+/nstap
