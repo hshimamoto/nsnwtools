@@ -22,5 +22,5 @@ int main(int argc, char **argv)
 	if (nsenter(atoi(argv[1])) == -1)
 		exit(1);
 
-	return system(argv[2]);
+	return execvp(argv[2], &argv[2]);
 }
