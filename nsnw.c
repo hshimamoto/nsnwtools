@@ -13,7 +13,7 @@ int jail(void)
 	int uid = getuid();
 	int gid = getgid();
 
-	if (unshare(CLONE_NEWNET | CLONE_NEWUSER) == -1) {
+	if (unshare(CLONE_NEWNET | CLONE_NEWNS | CLONE_NEWUSER) == -1) {
 		perror("unshare");
 		return -1;
 	}
