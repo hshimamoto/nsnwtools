@@ -6,6 +6,7 @@
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 int jail(void)
@@ -41,17 +42,47 @@ int jail(void)
 
 int main(int argc, char **argv)
 {
-	if (jail() == -1)
-		exit(1);
+	char *name = NULL;
+	int foreground = 0;
 
-	if (daemon(1, 1)) {
-		perror("daemon");
-		exit(1);
+	// nsnw [name]
+	//  or
+	// nsnw -d
+	//  foreground mode
+	if (argc > 1) {
+		if (strcmp(argv[1], "-d") == 0)
+			foreground = 1;
+		else
+			name = argv[1];
 	}
 
-	FILE *fp = fopen("nsnw.pid", "w");
-	fprintf(fp, "%u", getpid());
-	fclose(fp);
+	if (!foreground) {
+		if (fork())
+			return 0;
+		// child
+		// setup env
+		pid_t pid = getpid();
+		char pid_s[256];
+
+		sprintf(pid_s, "%u", pid);
+
+		if (!name) {
+			name = malloc(256);
+			sprintf(name, "net-%u", pid);
+		}
+
+		setenv("NSNW_PID", pid_s, 1);
+		setenv("NSNW_NAME", name, 1);
+
+		FILE *fp = fopen("nsnw.pid", "w");
+		fprintf(fp, "%u", pid);
+		fclose(fp);
+
+		return execlp(argv[0], argv[0], "-d", NULL);
+	}
+
+	if (jail() == -1)
+		exit(1);
 
 	for (;;)
 		sleep(600);
