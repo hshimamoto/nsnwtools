@@ -15,31 +15,13 @@
 #include <signal.h>
 #include <errno.h>
 
+#include "net.h"
+
 extern int nsenter(pid_t pid);
 
 #define BUFSZ	(65536)
 const int bufsz = BUFSZ;
 static char buf[BUFSZ];
-
-static int listensocket(struct sockaddr_in *paddr)
-{
-	int s, one = 1;
-
-	s = socket(AF_INET, SOCK_STREAM, 0);
-	if (s < 0)
-		return -1;
-	if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0)
-		goto bad;
-	if (bind(s, (struct sockaddr *)paddr, sizeof(*paddr)) < 0)
-		goto bad;
-	if (listen(s, 5) < 0)
-		goto bad;
-
-	return s;
-bad:
-	close(s);
-	return -1;
-}
 
 static void child_readwrite(int s, int r)
 {

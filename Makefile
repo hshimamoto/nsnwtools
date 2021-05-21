@@ -31,5 +31,9 @@ nsfwd: $(nsfwd-objs)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+# deps
+nsproxy.o: net.h
+nsfwd.o: net.h
+
 clean:
 	rm -f $(objs) $(bins)
