@@ -47,45 +47,6 @@ static int child_connect(int s, const char *host, const char *port)
 	return r;
 }
 
-static void child_readwrite(int s, int r)
-{
-	fd_set fds;
-	int max;
-	int ret;
-
-	max = (r > s) ? r : s;
-	max++;
-
-	for (;;) {
-		struct timeval tv;
-		FD_ZERO(&fds);
-		FD_SET(s, &fds);
-		FD_SET(r, &fds);
-		tv.tv_sec = 3600;
-		tv.tv_usec = 0;
-		ret = select(max, &fds, NULL, NULL, &tv);
-		if (ret < 0)
-			return;
-		// timeout happens
-		if (ret == 0) {
-			printf("nothing happen in hour, disconnect\n");
-			return;
-		}
-		if (FD_ISSET(s, &fds)) {
-			ret = read(s, buf, bufsz);
-			if (ret <= 0)
-				return;
-			write(r, buf, ret);
-		}
-		if (FD_ISSET(r, &fds)) {
-			ret = read(r, buf, bufsz);
-			if (ret <= 0)
-				return;
-			write(s, buf, ret);
-		}
-	}
-}
-
 static void child_work(int s)
 {
 	char *proto, *crlf2;
@@ -127,7 +88,7 @@ hostok:
 	if (ret > 0)
 		write(r, crlf2, ret);
 
-	child_readwrite(s, r);
+	iorelay(s, r);
 }
 
 static void accept_and_run(int s)
